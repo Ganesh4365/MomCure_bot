@@ -103,14 +103,13 @@
     const inputEl = document.getElementById("userInput");
     let awaitingPainLevel = false;
     let currentCondition = "";
-    let lastUserPain = "";
 
     const painData = {
       "eye pain": { tablet: "Refresh tears", remedy: "Cold water splash, rest, avoid screen." },
       "neck pain": { tablet: "Volini spray or Ibuprofen", remedy: "Neck stretches, warm compress." },
       "teeth pain": { tablet: "Ibuprofen", remedy: "Clove oil, warm salt rinse." },
       "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." },
-      "finger pain": { tablet: "Paracetamol", remedy: "Warm compress, avoid typing or pressure." }
+      "headache pain": { tablet: "Paracetamol or Ibuprofen", remedy: "Sleep, hydration, peppermint oil." }
     };
 
     function addMessage(text, sender) {
@@ -137,19 +136,16 @@
         addMessage(`For your ${currentCondition}, pain level ${level}/10:\n💊 Medicine: ${tablet}\n🏡 Mom's Remedy: ${remedy}${level >= 7 ? "\n❤️ Please don’t ignore this much pain, beta. You may need stronger care." : ""}`, 'bot');
         awaitingPainLevel = false;
         currentCondition = "";
-        lastUserPain = "";
       } else {
+        currentCondition = "";
+        awaitingPainLevel = false;
         const condition = identifyPainCondition(text);
         if (condition) {
           currentCondition = condition;
           awaitingPainLevel = true;
-          lastUserPain = condition;
           addMessage(`Aww, beta 🌸. I understand you have ${condition}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
         } else {
-          currentCondition = "";
-          awaitingPainLevel = false;
-          lastUserPain = text;
-          fetchGoogleAdvice(text);
+          fetchGeminiAdvice(text);
         }
       }
     }
@@ -157,20 +153,36 @@
     function identifyPainCondition(input) {
       const lowered = input.toLowerCase();
       for (const cond in painData) {
-        const parts = cond.split(" ");
-        if (parts.some(part => lowered.includes(part))) {
+        if (lowered.includes(cond.split(" ")[0])) {
           return cond;
         }
       }
       return null;
     }
 
-    async function fetchGoogleAdvice(query) {
+    async function fetchGeminiAdvice(query) {
+      const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // replace this with your actual API key
+      const url = "https://generativelanguage.googleapis.com/v1beta3/models/gemini-pro:generateContent?key=" + GEMINI_API_KEY;
+      const body = {
+        contents: [{ parts: [{ text: `Suggest a good medicine and a home remedy for: ${query}` }] }]
+      };
+
       try {
-        const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(query + " pain treatment site:webmd.com OR site:mayoclinic.org")}`;
-        addMessage(`Oops beta 🌐, I couldn’t find this in my book... but I looked it up for you here:\n🔍 ${googleUrl}`, 'bot');
-      } catch (err) {
-        addMessage("Sorry beta 🌐, Mom couldn’t search the internet right now. Try again in a few minutes.", 'bot');
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) {
+          addMessage(`Beta 💕, I looked it up for you: \n${reply}`, 'bot');
+        } else {
+          addMessage("Hmm, I couldn't find that exactly, beta 🌼. But try describing it differently or ask again.", 'bot');
+        }
+      } catch (e) {
+        console.error(e);
+        addMessage("Oops, I couldn’t reach the online clinic today 🌐💔. Try again later.", 'bot');
       }
     }
   </script>
