@@ -108,8 +108,7 @@
       "eye pain": { tablet: "Refresh tears", remedy: "Cold water splash, rest, avoid screen." },
       "neck pain": { tablet: "Volini spray or Ibuprofen", remedy: "Neck stretches, warm compress." },
       "teeth pain": { tablet: "Ibuprofen", remedy: "Clove oil, warm salt rinse." },
-      "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." },
-      "headache pain": { tablet: "Paracetamol or Ibuprofen", remedy: "Sleep, hydration, peppermint oil." }
+      "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." }
     };
 
     function addMessage(text, sender) {
@@ -137,15 +136,15 @@
         awaitingPainLevel = false;
         currentCondition = "";
       } else {
-        currentCondition = "";
-        awaitingPainLevel = false;
         const condition = identifyPainCondition(text);
         if (condition) {
           currentCondition = condition;
           awaitingPainLevel = true;
           addMessage(`Aww, beta 🌸. I understand you have ${condition}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
         } else {
-          fetchGeminiAdvice(text);
+          currentCondition = "";
+          awaitingPainLevel = false;
+          fetchOnlineAdvice(text);
         }
       }
     }
@@ -160,29 +159,18 @@
       return null;
     }
 
-    async function fetchGeminiAdvice(query) {
-      const GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"; // replace this with your actual API key
-      const url = "https://generativelanguage.googleapis.com/v1beta3/models/gemini-pro:generateContent?key=" + GEMINI_API_KEY;
-      const body = {
-        contents: [{ parts: [{ text: `Suggest a good medicine and a home remedy for: ${query}` }] }]
-      };
-
+    async function fetchOnlineAdvice(painQuery) {
       try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pain: painQuery })
         });
-        const data = await res.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (reply) {
-          addMessage(`Beta 💕, I looked it up for you: \n${reply}`, 'bot');
-        } else {
-          addMessage("Hmm, I couldn't find that exactly, beta 🌼. But try describing it differently or ask again.", 'bot');
-        }
-      } catch (e) {
-        console.error(e);
-        addMessage("Oops, I couldn’t reach the online clinic today 🌐💔. Try again later.", 'bot');
+        const data = await response.json();
+        addMessage(`Beta 💕, I looked it up for you:\n${data.reply}`, 'bot');
+      } catch (error) {
+        console.error(error);
+        addMessage("Oops 🌐💔. I couldn’t reach the online clinic today. Try again later.", 'bot');
       }
     }
   </script>
