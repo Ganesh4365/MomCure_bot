@@ -3,88 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MomCure – Your AI Mom</title>
+  <title>MomCure – Your AI Mom ❤️</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #ffe6e6, #fff0f5);
-      font-family: 'Comic Sans MS', cursive;
+      font-family: "Segoe UI", sans-serif;
+      background: #fffafc;
+      color: #333;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
-      color: #444;
+      padding: 2rem;
+      background-image: linear-gradient(to bottom, #fffafc, #ffe6ec);
+    }
+
+    .container {
+      max-width: 500px;
       text-align: center;
-    }
-
-    .card {
       background: white;
-      padding: 30px;
+      padding: 2rem;
       border-radius: 20px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
-      width: 90%;
-    }
-
-    .card img {
-      width: 120px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 100px;
-      margin-bottom: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border: 3px dashed #ffb6c1;
     }
 
     h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
       color: #e91e63;
-      font-size: 2em;
-      margin-bottom: 10px;
     }
 
     p {
-      font-size: 1.1em;
-      margin-bottom: 20px;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
     }
 
-    .btn {
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #e91e63;
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ffb6c1;
+      margin-bottom: 1rem;
+    }
+
+    .start-button {
+      background: #e91e63;
       color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
       border-radius: 30px;
-      text-decoration: none;
-      font-weight: bold;
-      box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3);
-      transition: all 0.3s ease;
+      cursor: pointer;
+      transition: 0.3s ease;
+      box-shadow: 0 5px 15px rgba(233, 30, 99, 0.4);
     }
 
-    .btn:hover {
-      background-color: #d81b60;
+    .start-button:hover {
+      background: #d81b60;
     }
 
-    .emojis {
-      font-size: 20px;
-      margin-top: 10px;
+    /* Floating Chat Icon */
+    .chat-icon {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #e91e63;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(233, 30, 99, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      cursor: pointer;
+      animation: pulse 2s infinite;
     }
 
-    footer {
-      margin-top: 20px;
-      font-size: 0.9em;
-      color: #888;
+    .chat-icon img {
+      width: 30px;
+      height: 30px;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.4);
+      }
+      70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 20px rgba(233, 30, 99, 0);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(233, 30, 99, 0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      .start-button {
+        font-size: 0.9rem;
+        padding: 0.7rem 1.2rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <img src="https://media.giphy.com/media/3o6Zt6ML6BklcajjsA/giphy.gif" alt="Mom hug animation">
-    <h1>Welcome to MomCure 🤱</h1>
-    <p>
-      I’m your digital mom who listens to your pain, comforts you, and gives gentle healing advice – just like your real mom would. 💖
-    </p>
-    <a class="btn" href="https://t.me/momcure_bot" target="_blank">💬 Chat with Mom</a>
-    <div class="emojis">🌸💖🫂🏡🤱</div>
+
+  <div class="container">
+    <img class="avatar" src="https://cdn.pixabay.com/photo/2017/10/09/20/41/family-2835855_1280.jpg" alt="Mom Avatar"/>
+    <h1>MomCure is Here 💖</h1>
+    <p>Feeling unwell? Click below to chat with your AI Mom – she'll comfort you with home remedies & love.</p>
+    <button class="start-button" onclick="window.open('https://t.me/MomCureBot', '_blank')">
+      Chat Now on Telegram
+    </button>
   </div>
-  <footer>Made with love by MomCure • You're never alone 🌼</footer>
+
+  <!-- Floating chatbot icon -->
+  <div class="chat-icon" onclick="window.open('https://t.me/MomCureBot', '_blank')">
+    <img src="https://cdn-icons-png.flaticon.com/512/2950/2950663.png" alt="Chat Icon"/>
+  </div>
+
 </body>
 </html>
