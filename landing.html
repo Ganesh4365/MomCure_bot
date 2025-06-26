@@ -2,128 +2,185 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MomCure Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MomCure SmartBot 💖</title>
   <style>
     body {
-      margin: 0;
+      background: linear-gradient(to bottom right, #fff0f5, #ffe4e1);
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #ffe6e6, #fff5f5);
+      margin: 0;
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
     }
-    .chat-container {
-      width: 95%;
-      max-width: 420px;
-      background: #fff;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    .chat-box {
+      width: 100%;
+      max-width: 480px;
+      background: white;
       border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-    .header {
-      background: #ff9aa2;
-      color: white;
+    .chat-header {
+      background: #ff91a4;
       padding: 15px;
-      font-weight: bold;
-      font-size: 20px;
       text-align: center;
+      font-size: 20px;
+      color: white;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .chat-box {
-      flex: 1;
+    .chat-header img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+    .chat-messages {
+      flex-grow: 1;
       padding: 15px;
       overflow-y: auto;
-      max-height: 400px;
-    }
-    .input-box {
-      display: flex;
-      border-top: 1px solid #eee;
-    }
-    input {
-      flex: 1;
-      padding: 15px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-    button {
-      background: #ff9aa2;
-      border: none;
-      color: white;
-      padding: 15px 20px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #ff6f8c;
     }
     .msg {
-      margin-bottom: 15px;
-      padding: 10px 14px;
-      border-radius: 14px;
-      max-width: 75%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      margin-bottom: 10px;
+      max-width: 80%;
     }
-    .user {
-      background: #e0f7fa;
+    .msg.user {
+      background: #d0f0c0;
       align-self: flex-end;
     }
-    .bot {
-      background: #ffe3ec;
+    .msg.bot {
+      background: #ffe0e5;
       align-self: flex-start;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+    }
+    .chat-input button {
+      padding: 12px 20px;
+      background: #ff91a4;
+      border: none;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .chat-input button:hover {
+      background: #ff6f91;
     }
   </style>
 </head>
 <body>
-
-<div class="chat-container">
-  <div class="header">💬 Talk to MomCure</div>
-  <div class="chat-box" id="chatBox">
-    <div class="msg bot">Hi beta 😊, I'm MomCure! Tell me what’s hurting, I’ll help you.</div>
+  <div class="chat-box">
+    <div class="chat-header">
+      <img src="https://i.ibb.co/F6hXbFC/mother-avatar.png" alt="Mom Avatar" />
+      Talk to MomCure 💖
+    </div>
+    <div class="chat-messages" id="chat">
+      <div class="msg bot">Hi beta 😊, I’m MomCure. What’s hurting you today?</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type your pain here...">
+      <button onclick="processUserInput()">Send</button>
+    </div>
   </div>
-  <div class="input-box">
-    <input type="text" id="userInput" placeholder="Type your pain..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
-</div>
 
-<script>
-  function sendMessage() {
-    const input = document.getElementById('userInput');
-    const chatBox = document.getElementById('chatBox');
-    const text = input.value.trim();
+  <script src="https://unpkg.com/compromise"></script>
+  <script>
+    const chat = document.getElementById('chat');
 
-    if (!text) return;
+    const painData = {
+      headache: {
+        tablet: "Paracetamol (Dolo 650)",
+        remedy: "Cold compress on forehead, rest, avoid screens."
+      },
+      cold: {
+        tablet: "Cetirizine or Sinarest",
+        remedy: "Steam inhalation, turmeric milk, stay warm."
+      },
+      fever: {
+        tablet: "Dolo 650 / Calpol",
+        remedy: "Hydration, rest, sponge with cool cloth."
+      },
+      "stomach ache": {
+        tablet: "Cyclopam / Meftal-Spas",
+        remedy: "Ajwain water, warm compress on belly."
+      },
+      "back pain": {
+        tablet: "Moov/Volini + Ibuprofen",
+        remedy: "Warm massage, flat rest, turmeric milk."
+      },
+      "leg pain": {
+        tablet: "Flexon or Ibuprofen",
+        remedy: "Stretching, massage, soak in warm salt water."
+      },
+      "toothache": {
+        tablet: "Paracetamol or Ibuprofen",
+        remedy: "Clove oil dab, rinse with warm salt water."
+      },
+      "chest pain": {
+        tablet: "Consult immediately if severe",
+        remedy: "Deep breathing, rest. Monitor closely."
+      }
+    };
 
-    // User message
-    chatBox.innerHTML += `<div class="msg user">${text}</div>`;
-    input.value = '';
+    function processUserInput() {
+      const inputEl = document.getElementById("userInput");
+      const text = inputEl.value.trim();
+      if (!text) return;
+      addMessage(text, 'user');
+      inputEl.value = "";
 
-    // Bot response logic
-    const msg = text.toLowerCase();
-    let response = "";
-
-    if (msg.includes("headache")) {
-      response = "Take a tablet like Crocin or Paracetamol. 💊 Also rest in a dark, quiet room and drink water, beta. ❤️";
-    } else if (msg.includes("stomach")) {
-      response = "Try taking Buscopan. 💊 Also sip on warm water and apply a hot compress on your belly. Mom's care. 🤗";
-    } else if (msg.includes("cold") || msg.includes("cough")) {
-      response = "Try taking Cetirizine or steam inhalation. 💊 You can also sip tulsi-ginger tea. 🌿";
-    } else if (msg.includes("fever")) {
-      response = "Take a Paracetamol tablet. 💊 Also sponge with cool water and stay hydrated. I'm watching over you. ❤️";
-    } else {
-      response = "Hmm, I couldn't catch that, beta. Can you describe your pain a bit more? 💭";
+      setTimeout(() => {
+        const answer = getSmartResponse(text);
+        addMessage(answer, 'bot');
+      }, 500);
     }
 
-    setTimeout(() => {
-      chatBox.innerHTML += `<div class="msg bot">${response}</div>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }, 600);
-  }
-</script>
+    function addMessage(text, sender) {
+      const msg = document.createElement('div');
+      msg.className = 'msg ' + sender;
+      msg.innerText = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
+    function getSmartResponse(input) {
+      const painKeys = Object.keys(painData);
+      const found = painKeys.find(pain => input.toLowerCase().includes(pain));
+
+      if (found) {
+        const { tablet, remedy } = painData[found];
+        return `Oh beta 🌸, for your ${found}:
+💊 Medicine: ${tablet}
+🏡 Mom's Remedy: ${remedy}`;
+      }
+
+      const matches = window.compromise(input).topics().out('array');
+      const similar = painKeys.find(key => matches.some(m => key.includes(m)));
+
+      if (similar) {
+        const { tablet, remedy } = painData[similar];
+        return `Sweetheart 💕, sounds like ${similar}.
+💊 Medicine: ${tablet}
+🏡 Mom’s Remedy: ${remedy}`;
+      }
+
+      return "Hmm, I'm not sure about that yet, beta 💭. Can you describe the pain in simpler words?";
+    }
+  </script>
 </body>
 </html>
