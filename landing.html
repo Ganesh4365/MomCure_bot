@@ -98,73 +98,22 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/brain.js"></script>
   <script>
     const chat = document.getElementById('chat');
-    let lastPain = null;
-    let waitingForLevel = false;
+    const inputEl = document.getElementById("userInput");
+    let awaitingPainLevel = false;
+    let currentCondition = "";
+    let lastUserPain = "";
 
     const painData = {
-      "headache": { tablet: "Paracetamol (Dolo 650)", remedy: "Cold compress, rest, avoid screens." },
-      "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." },
-      "fever": { tablet: "Dolo 650", remedy: "Hydration, sponge bath." },
-      "stomach pain": { tablet: "Meftal-Spas", remedy: "Ajwain water, warm compress." },
       "eye pain": { tablet: "Refresh tears", remedy: "Cold water splash, rest, avoid screen." },
-      "back pain": { tablet: "Ibuprofen", remedy: "Massage, turmeric milk, rest." },
-      "toothache": { tablet: "Ibuprofen", remedy: "Clove oil, warm salt rinse." },
-      "chest pain": { tablet: "Consult doctor", remedy: "Deep breathing, rest." }
+      "neck pain": { tablet: "Volini spray or Ibuprofen", remedy: "Neck stretches, warm compress." },
+      "teeth pain": { tablet: "Ibuprofen", remedy: "Clove oil, warm salt rinse." },
+      "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." },
+      "finger pain": { tablet: "Paracetamol", remedy: "Warm compress, avoid typing or pressure." }
     };
 
-    const net = new brain.NeuralNetwork();
-
-    // Training phrases mapped to conditions
-    net.train([
-      { input: { eyes: 1, pain: 1 }, output: { "eye pain": 1 } },
-      { input: { stomach: 1, cramps: 1 }, output: { "stomach pain": 1 } },
-      { input: { headache: 1 }, output: { headache: 1 } },
-      { input: { back: 1, hurts: 1 }, output: { "back pain": 1 } },
-      { input: { cold: 1 }, output: { cold: 1 } },
-      { input: { fever: 1 }, output: { fever: 1 } },
-      { input: { teeth: 1, pain: 1 }, output: { toothache: 1 } }
-    ]);
-
-    function processUserInput() {
-      const inputEl = document.getElementById("userInput");
-      const text = inputEl.value.trim();
-      if (!text) return;
-      addMessage(text, 'user');
-      inputEl.value = "";
-
-      setTimeout(() => {
-        if (waitingForLevel && lastPain) {
-          const level = parseInt(text);
-          if (!isNaN(level) && level >= 1 && level <= 10) {
-            const { tablet, remedy } = painData[lastPain] || { tablet: "Paracetamol", remedy: "Rest and fluids." };
-            const extra = level >= 7 ? "Please don’t ignore this much pain, beta. You may need stronger care." : "Take care and don’t worry too much, sweetie.";
-            addMessage(`For your ${lastPain}, pain level ${level}/10:
-💊 Medicine: ${tablet}
-🏡 Mom's Remedy: ${remedy}
-❤️ ${extra}`, 'bot');
-          } else {
-            addMessage("Please tell me pain level from 1 to 10, beta 🌼.", 'bot');
-            return;
-          }
-          waitingForLevel = false;
-          lastPain = null;
-          return;
-        }
-
-        const response = getSmartResponse(text);
-        if (response.found) {
-          lastPain = response.condition;
-          waitingForLevel = true;
-          addMessage(`Aww, beta 🌸. I understand you have ${lastPain}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
-        } else {
-          addMessage("Hmm, I couldn’t find that pain in my memory. But I’ll learn it now and improve for you 💖. Please describe again.", 'bot');
-          autoLearn(text);
-        }
-      }, 500);
-    }
+    const dynamicPainMemory = {};
 
     function addMessage(text, sender) {
       const msg = document.createElement('div');
@@ -174,44 +123,76 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
-    function tokenize(text) {
-      const tokens = {};
-      text.toLowerCase().split(/\W+/).forEach(word => {
-        if (word) tokens[word] = 1;
-      });
-      return tokens;
-    }
+    function processUserInput() {
+      const text = inputEl.value.trim();
+      inputEl.value = "";
+      if (!text) return;
+      addMessage(text, 'user');
 
-    function getSmartResponse(input) {
-      const tokens = tokenize(input);
-      const output = net.run(tokens);
-      let maxVal = 0;
-      let bestMatch = null;
-
-      for (const condition in output) {
-        if (output[condition] > maxVal) {
-          maxVal = output[condition];
-          bestMatch = condition;
+      if (awaitingPainLevel && currentCondition) {
+        const level = parseInt(text);
+        if (isNaN(level) || level < 1 || level > 10) {
+          addMessage("Please enter a number between 1 and 10 for pain level, beta 🌸.", 'bot');
+          return;
+        }
+        const source = painData[currentCondition] || dynamicPainMemory[currentCondition];
+        if (source) {
+          const { tablet, remedy } = source;
+          addMessage(`For your ${currentCondition}, pain level ${level}/10:\n💊 Medicine: ${tablet}\n🏡 Mom's Remedy: ${remedy}${level >= 7 ? "\n❤️ Please don’t ignore this much pain, beta. You may need stronger care." : ""}`, 'bot');
+        } else {
+          addMessage("I still don’t have enough info for this pain yet, beta. Let’s research more next time.", 'bot');
+        }
+        awaitingPainLevel = false;
+        currentCondition = "";
+        lastUserPain = "";
+      } else {
+        const condition = identifyPainCondition(text);
+        if (condition) {
+          currentCondition = condition;
+          awaitingPainLevel = true;
+          lastUserPain = condition;
+          addMessage(`Aww, beta 🌸. I understand you have ${condition}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
+        } else {
+          currentCondition = text.toLowerCase();
+          lastUserPain = currentCondition;
+          addMessage(`Hmm… I haven't seen "${text}" pain before, beta... but let me think a second 🧠💡`, 'bot');
+          simulateSmartAdvice(currentCondition);
+          dynamicPainMemory[currentCondition] = {
+            tablet: "Paracetamol or rest suggested",
+            remedy: "Apply warm/cold compress and monitor symptoms"
+          };
         }
       }
-
-      if (bestMatch) {
-        return { found: true, condition: bestMatch };
-      }
-      return { found: false };
     }
 
-    function autoLearn(input) {
-      const tokens = tokenize(input);
-      const guessLabel = Object.keys(tokens).join(" ");
-      const conditionName = prompt("Mom will remember this, beta 🌼. What should I call this pain? (like leg cramp, hand burn etc.)");
-      if (!conditionName) return;
+    function identifyPainCondition(input) {
+      const lowered = input.toLowerCase();
+      for (const cond in painData) {
+        const parts = cond.split(" ");
+        if (parts.some(part => lowered.includes(part))) {
+          return cond;
+        }
+      }
+      return null;
+    }
 
-      net.train([{ input: tokens, output: { [conditionName]: 1 } }]);
-      painData[conditionName] = {
-        tablet: "Paracetamol (generic)",
-        remedy: "Apply mom's love and home care – rest, hydration, warm compress."
-      };
+    function simulateSmartAdvice(query) {
+      const cleaned = query.toLowerCase();
+      let tablet = "Paracetamol or Ibuprofen";
+      let remedy = "Rest, hydration, warm compress or cold packs based on pain type.";
+
+      if (cleaned.includes("back")) {
+        tablet = "Ibuprofen or muscle relaxant";
+        remedy = "Gentle stretching, avoid bending, use warm compress.";
+      } else if (cleaned.includes("stomach")) {
+        tablet = "Antacid or Dicyclomine";
+        remedy = "Avoid oily/spicy food, sip warm water or ajwain tea.";
+      } else if (cleaned.includes("ear")) {
+        tablet = "Paracetamol, or ear drops if prescribed";
+        remedy = "Warm cloth compress, avoid inserting anything inside.";
+      }
+
+      addMessage(`Here’s what might help with your "${query}", beta 🌸:\n\n💊 Medicine: ${tablet}\n🏡 Home Remedy: ${remedy}\n\nIf it gets worse or stays long, promise me you’ll check with a doctor too 💕`, 'bot');
     }
   </script>
 </body>
