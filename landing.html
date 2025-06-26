@@ -98,47 +98,35 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/brain.js"></script>
   <script>
     const chat = document.getElementById('chat');
+    let lastPain = null;
+    let waitingForLevel = false;
 
     const painData = {
-      headache: {
-        tablet: "Paracetamol (Dolo 650)",
-        remedy: "Cold compress on forehead, rest, avoid screens."
-      },
-      cold: {
-        tablet: "Cetirizine or Sinarest",
-        remedy: "Steam inhalation, turmeric milk, stay warm."
-      },
-      fever: {
-        tablet: "Dolo 650 / Calpol",
-        remedy: "Hydration, rest, sponge with cool cloth."
-      },
-      "stomach ache": {
-        tablet: "Cyclopam / Meftal-Spas",
-        remedy: "Ajwain water, warm compress on belly."
-      },
-      "back pain": {
-        tablet: "Moov/Volini + Ibuprofen",
-        remedy: "Warm massage, flat rest, turmeric milk."
-      },
-      "leg pain": {
-        tablet: "Flexon or Ibuprofen",
-        remedy: "Stretching, massage, soak in warm salt water."
-      },
-      "toothache": {
-        tablet: "Paracetamol or Ibuprofen",
-        remedy: "Clove oil dab, rinse with warm salt water."
-      },
-      "chest pain": {
-        tablet: "Consult immediately if severe",
-        remedy: "Deep breathing, rest. Monitor closely."
-      },
-      "eye pain": {
-        tablet: "Refresh Tears / Lubricating Drops",
-        remedy: "Wash eyes, avoid screens, apply cold compress."
-      }
+      "headache": { tablet: "Paracetamol (Dolo 650)", remedy: "Cold compress, rest, avoid screens." },
+      "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." },
+      "fever": { tablet: "Dolo 650", remedy: "Hydration, sponge bath." },
+      "stomach pain": { tablet: "Meftal-Spas", remedy: "Ajwain water, warm compress." },
+      "eye pain": { tablet: "Refresh tears", remedy: "Cold water splash, rest, avoid screen." },
+      "back pain": { tablet: "Ibuprofen", remedy: "Massage, turmeric milk, rest." },
+      "toothache": { tablet: "Ibuprofen", remedy: "Clove oil, warm salt rinse." },
+      "chest pain": { tablet: "Consult doctor", remedy: "Deep breathing, rest." }
     };
+
+    const net = new brain.NeuralNetwork();
+
+    // Training phrases mapped to conditions
+    net.train([
+      { input: { eyes: 1, pain: 1 }, output: { "eye pain": 1 } },
+      { input: { stomach: 1, cramps: 1 }, output: { "stomach pain": 1 } },
+      { input: { headache: 1 }, output: { headache: 1 } },
+      { input: { back: 1, hurts: 1 }, output: { "back pain": 1 } },
+      { input: { cold: 1 }, output: { cold: 1 } },
+      { input: { fever: 1 }, output: { fever: 1 } },
+      { input: { teeth: 1, pain: 1 }, output: { toothache: 1 } }
+    ]);
 
     function processUserInput() {
       const inputEl = document.getElementById("userInput");
@@ -148,9 +136,33 @@
       inputEl.value = "";
 
       setTimeout(() => {
-        getSmartResponse(text).then(answer => {
-          addMessage(answer, 'bot');
-        });
+        if (waitingForLevel && lastPain) {
+          const level = parseInt(text);
+          if (!isNaN(level) && level >= 1 && level <= 10) {
+            const { tablet, remedy } = painData[lastPain] || { tablet: "Paracetamol", remedy: "Rest and fluids." };
+            const extra = level >= 7 ? "Please don’t ignore this much pain, beta. You may need stronger care." : "Take care and don’t worry too much, sweetie.";
+            addMessage(`For your ${lastPain}, pain level ${level}/10:
+💊 Medicine: ${tablet}
+🏡 Mom's Remedy: ${remedy}
+❤️ ${extra}`, 'bot');
+          } else {
+            addMessage("Please tell me pain level from 1 to 10, beta 🌼.", 'bot');
+            return;
+          }
+          waitingForLevel = false;
+          lastPain = null;
+          return;
+        }
+
+        const response = getSmartResponse(text);
+        if (response.found) {
+          lastPain = response.condition;
+          waitingForLevel = true;
+          addMessage(`Aww, beta 🌸. I understand you have ${lastPain}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
+        } else {
+          addMessage("Hmm, I couldn’t find that pain in my memory. But I’ll learn it now and improve for you 💖. Please describe again.", 'bot');
+          autoLearn(text);
+        }
       }, 500);
     }
 
@@ -162,32 +174,44 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
-    async function getSmartResponse(input) {
-      const keys = Object.keys(painData);
-      const matched = keys.find(key => input.toLowerCase().includes(key));
+    function tokenize(text) {
+      const tokens = {};
+      text.toLowerCase().split(/\W+/).forEach(word => {
+        if (word) tokens[word] = 1;
+      });
+      return tokens;
+    }
 
-      if (matched) {
-        const { tablet, remedy } = painData[matched];
-        return `Oh beta 🌸, for your ${matched}:
-💊 Medicine: ${tablet}
-🏡 Mom's Remedy: ${remedy}`;
-      }
+    function getSmartResponse(input) {
+      const tokens = tokenize(input);
+      const output = net.run(tokens);
+      let maxVal = 0;
+      let bestMatch = null;
 
-      // Internet search fallback (optional using DuckDuckGo)
-      try {
-        const query = encodeURIComponent(input + " medicine and home remedy");
-        const response = await fetch(`https://api.duckduckgo.com/?q=${query}&format=json&no_redirect=1&skip_disambig=1`);
-        const result = await response.json();
-
-        if (result?.AbstractText) {
-          return `Here’s what I found for you beta 🌍:
-${result.AbstractText}`;
-        } else {
-          return "Hmm, I couldn't find anything very helpful, beta 💭. Try saying it in different words.";
+      for (const condition in output) {
+        if (output[condition] > maxVal) {
+          maxVal = output[condition];
+          bestMatch = condition;
         }
-      } catch (err) {
-        return "Oops, I tried searching online but something went wrong. Please try again later. 💻";
       }
+
+      if (bestMatch) {
+        return { found: true, condition: bestMatch };
+      }
+      return { found: false };
+    }
+
+    function autoLearn(input) {
+      const tokens = tokenize(input);
+      const guessLabel = Object.keys(tokens).join(" ");
+      const conditionName = prompt("Mom will remember this, beta 🌼. What should I call this pain? (like leg cramp, hand burn etc.)");
+      if (!conditionName) return;
+
+      net.train([{ input: tokens, output: { [conditionName]: 1 } }]);
+      painData[conditionName] = {
+        tablet: "Paracetamol (generic)",
+        remedy: "Apply mom's love and home care – rest, hydration, warm compress."
+      };
     }
   </script>
 </body>
