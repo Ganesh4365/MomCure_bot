@@ -3,72 +3,127 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MomCure - Talk to Your AI Mom</title>
+  <title>MomCure Chatbot</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #ffeaea, #ffd6d6);
       font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #ffe6e6, #fff5f5);
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       height: 100vh;
     }
-    .chatbox {
-      background: #fff;
+    .chat-container {
       width: 95%;
       max-width: 420px;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
       border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(255, 0, 64, 0.1);
-      padding: 30px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: #ff9aa2;
+      color: white;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 20px;
       text-align: center;
     }
-    .avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      margin-bottom: 20px;
-      object-fit: cover;
-      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    .chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      max-height: 400px;
     }
-    h2 {
-      color: #d6336c;
-      margin-bottom: 10px;
+    .input-box {
+      display: flex;
+      border-top: 1px solid #eee;
     }
-    p {
-      color: #333;
+    input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      outline: none;
       font-size: 16px;
     }
     button {
-      margin-top: 25px;
-      padding: 12px 30px;
-      background: #ff85a2;
-      color: white;
+      background: #ff9aa2;
       border: none;
-      border-radius: 25px;
-      font-size: 16px;
+      color: white;
+      padding: 15px 20px;
       cursor: pointer;
-      box-shadow: 0 8px 20px rgba(255, 133, 162, 0.3);
-      transition: all 0.3s ease;
+      font-weight: bold;
+      transition: background 0.3s;
     }
     button:hover {
-      background: #ff6f91;
+      background: #ff6f8c;
     }
-    footer {
-      margin-top: 30px;
-      font-size: 14px;
-      color: #888;
+    .msg {
+      margin-bottom: 15px;
+      padding: 10px 14px;
+      border-radius: 14px;
+      max-width: 75%;
+    }
+    .user {
+      background: #e0f7fa;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #ffe3ec;
+      align-self: flex-start;
     }
   </style>
 </head>
 <body>
-  <div class="chatbox">
-    <img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png" class="avatar" alt="Mom Avatar" />
-    <h2>Talk to MomCure</h2>
-    <p>Welcome to your loving AI mom. Ready to comfort, guide, and heal. Click below to begin chatting ❤️</p>
-    <button onclick="window.location.href='https://t.me/MomCureBot'">Start Chat</button>
-    <footer>Mom is waiting for you with love... 💬</footer>
+
+<div class="chat-container">
+  <div class="header">💬 Talk to MomCure</div>
+  <div class="chat-box" id="chatBox">
+    <div class="msg bot">Hi beta 😊, I'm MomCure! Tell me what’s hurting, I’ll help you.</div>
   </div>
+  <div class="input-box">
+    <input type="text" id="userInput" placeholder="Type your pain..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  function sendMessage() {
+    const input = document.getElementById('userInput');
+    const chatBox = document.getElementById('chatBox');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    // User message
+    chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+    input.value = '';
+
+    // Bot response logic
+    const msg = text.toLowerCase();
+    let response = "";
+
+    if (msg.includes("headache")) {
+      response = "Take a tablet like Crocin or Paracetamol. 💊 Also rest in a dark, quiet room and drink water, beta. ❤️";
+    } else if (msg.includes("stomach")) {
+      response = "Try taking Buscopan. 💊 Also sip on warm water and apply a hot compress on your belly. Mom's care. 🤗";
+    } else if (msg.includes("cold") || msg.includes("cough")) {
+      response = "Try taking Cetirizine or steam inhalation. 💊 You can also sip tulsi-ginger tea. 🌿";
+    } else if (msg.includes("fever")) {
+      response = "Take a Paracetamol tablet. 💊 Also sponge with cool water and stay hydrated. I'm watching over you. ❤️";
+    } else {
+      response = "Hmm, I couldn't catch that, beta. Can you describe your pain a bit more? 💭";
+    }
+
+    setTimeout(() => {
+      chatBox.innerHTML += `<div class="msg bot">${response}</div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }, 600);
+  }
+</script>
+
 </body>
 </html>
