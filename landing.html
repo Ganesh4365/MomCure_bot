@@ -101,9 +101,6 @@
   <script>
     const chat = document.getElementById('chat');
     const inputEl = document.getElementById("userInput");
-    let awaitingPainLevel = false;
-    let currentCondition = "";
-    let lastUserPain = "";
 
     const painData = {
       "eye pain": { tablet: "Refresh tears", remedy: "Cold water splash, rest, avoid screen." },
@@ -112,8 +109,6 @@
       "cold": { tablet: "Cetirizine", remedy: "Steam inhalation, turmeric milk." },
       "finger pain": { tablet: "Paracetamol", remedy: "Warm compress, avoid typing or pressure." }
     };
-
-    const dynamicPainMemory = {};
 
     function addMessage(text, sender) {
       const msg = document.createElement('div');
@@ -129,47 +124,19 @@
       if (!text) return;
       addMessage(text, 'user');
 
-      if (awaitingPainLevel && currentCondition) {
-        const level = parseInt(text);
-        if (isNaN(level) || level < 1 || level > 10) {
-          addMessage("Please enter a number between 1 and 10 for pain level, beta 🌸.", 'bot');
-          return;
-        }
-        const source = painData[currentCondition] || dynamicPainMemory[currentCondition];
-        if (source) {
-          const { tablet, remedy } = source;
-          addMessage(`For your ${currentCondition}, pain level ${level}/10:\n💊 Medicine: ${tablet}\n🏡 Mom's Remedy: ${remedy}${level >= 7 ? "\n❤️ Please don’t ignore this much pain, beta. You may need stronger care." : ""}`, 'bot');
-        } else {
-          addMessage("I still don’t have enough info for this pain yet, beta. Let’s research more next time.", 'bot');
-        }
-        awaitingPainLevel = false;
-        currentCondition = "";
-        lastUserPain = "";
+      const condition = identifyPainCondition(text.toLowerCase());
+      if (condition) {
+        const { tablet, remedy } = painData[condition];
+        addMessage(`For your ${condition}, beta 💖:\n💊 *Medicine*: ${tablet}\n🏡 *Mom's Remedy*: ${remedy}`, 'bot');
       } else {
-        const condition = identifyPainCondition(text);
-        if (condition) {
-          currentCondition = condition;
-          awaitingPainLevel = true;
-          lastUserPain = condition;
-          addMessage(`Aww, beta 🌸. I understand you have ${condition}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
-        } else {
-          currentCondition = text.toLowerCase();
-          lastUserPain = currentCondition;
-          addMessage(`Hmm… I haven't seen "${text}" pain before, beta... but let me think a second 🧠💡`, 'bot');
-          simulateSmartAdvice(currentCondition);
-          dynamicPainMemory[currentCondition] = {
-            tablet: "Paracetamol or rest suggested",
-            remedy: "Apply warm/cold compress and monitor symptoms"
-          };
-        }
+        simulateSmartAdvice(text);
       }
     }
 
     function identifyPainCondition(input) {
-      const lowered = input.toLowerCase();
       for (const cond in painData) {
         const parts = cond.split(" ");
-        if (parts.some(part => lowered.includes(part))) {
+        if (parts.some(part => input.includes(part))) {
           return cond;
         }
       }
@@ -179,20 +146,20 @@
     function simulateSmartAdvice(query) {
       const cleaned = query.toLowerCase();
       let tablet = "Paracetamol or Ibuprofen";
-      let remedy = "Rest, hydration, warm compress or cold packs based on pain type.";
+      let remedy = "Rest, hydration, warm or cold compress depending on the pain.";
 
       if (cleaned.includes("back")) {
         tablet = "Ibuprofen or muscle relaxant";
-        remedy = "Gentle stretching, avoid bending, use warm compress.";
+        remedy = "Gentle stretches, rest, warm compress, avoid lifting.";
       } else if (cleaned.includes("stomach")) {
         tablet = "Antacid or Dicyclomine";
-        remedy = "Avoid oily/spicy food, sip warm water or ajwain tea.";
+        remedy = "Light meals, ajwain tea, avoid spicy food.";
       } else if (cleaned.includes("ear")) {
-        tablet = "Paracetamol, or ear drops if prescribed";
-        remedy = "Warm cloth compress, avoid inserting anything inside.";
+        tablet = "Paracetamol or ear drops (if prescribed)";
+        remedy = "Warm compress, keep it dry, don't poke.";
       }
 
-      addMessage(`Here’s what might help with your "${query}", beta 🌸:\n\n💊 Medicine: ${tablet}\n🏡 Home Remedy: ${remedy}\n\nIf it gets worse or stays long, promise me you’ll check with a doctor too 💕`, 'bot');
+      addMessage(`For "${query}", here’s what Mom suggests 🌸:\n💊 *Medicine*: ${tablet}\n🏡 *Home Remedy*: ${remedy}\n\nStay strong, beta. If it continues, talk to a doctor too 💕`, 'bot');
     }
   </script>
 </body>
