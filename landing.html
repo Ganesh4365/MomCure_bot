@@ -101,6 +101,9 @@
   <script>
     const chat = document.getElementById('chat');
     const inputEl = document.getElementById("userInput");
+    let awaitingPainLevel = false;
+    let currentCondition = "";
+    let lastUserPain = "";
 
     const painData = {
       "eye pain": { tablet: "Refresh tears", remedy: "Cold water splash, rest, avoid screen." },
@@ -124,42 +127,51 @@
       if (!text) return;
       addMessage(text, 'user');
 
-      const condition = identifyPainCondition(text.toLowerCase());
-      if (condition) {
-        const { tablet, remedy } = painData[condition];
-        addMessage(`For your ${condition}, beta 💖:\n💊 *Medicine*: ${tablet}\n🏡 *Mom's Remedy*: ${remedy}`, 'bot');
+      if (awaitingPainLevel && currentCondition) {
+        const level = parseInt(text);
+        if (isNaN(level) || level < 1 || level > 10) {
+          addMessage("Please enter a number between 1 and 10 for pain level, beta 🌸.", 'bot');
+          return;
+        }
+        const { tablet, remedy } = painData[currentCondition];
+        addMessage(`For your ${currentCondition}, pain level ${level}/10:\n💊 Medicine: ${tablet}\n🏡 Mom's Remedy: ${remedy}${level >= 7 ? "\n❤️ Please don’t ignore this much pain, beta. You may need stronger care." : ""}`, 'bot');
+        awaitingPainLevel = false;
+        currentCondition = "";
+        lastUserPain = "";
       } else {
-        simulateSmartAdvice(text);
+        const condition = identifyPainCondition(text);
+        if (condition) {
+          currentCondition = condition;
+          awaitingPainLevel = true;
+          lastUserPain = condition;
+          addMessage(`Aww, beta 🌸. I understand you have ${condition}. Can you tell me how much it hurts from 1 to 10?`, 'bot');
+        } else {
+          currentCondition = "";
+          awaitingPainLevel = false;
+          lastUserPain = text;
+          fetchGoogleAdvice(text);
+        }
       }
     }
 
     function identifyPainCondition(input) {
+      const lowered = input.toLowerCase();
       for (const cond in painData) {
         const parts = cond.split(" ");
-        if (parts.some(part => input.includes(part))) {
+        if (parts.some(part => lowered.includes(part))) {
           return cond;
         }
       }
       return null;
     }
 
-    function simulateSmartAdvice(query) {
-      const cleaned = query.toLowerCase();
-      let tablet = "Paracetamol or Ibuprofen";
-      let remedy = "Rest, hydration, warm or cold compress depending on the pain.";
-
-      if (cleaned.includes("back")) {
-        tablet = "Ibuprofen or muscle relaxant";
-        remedy = "Gentle stretches, rest, warm compress, avoid lifting.";
-      } else if (cleaned.includes("stomach")) {
-        tablet = "Antacid or Dicyclomine";
-        remedy = "Light meals, ajwain tea, avoid spicy food.";
-      } else if (cleaned.includes("ear")) {
-        tablet = "Paracetamol or ear drops (if prescribed)";
-        remedy = "Warm compress, keep it dry, don't poke.";
+    async function fetchGoogleAdvice(query) {
+      try {
+        const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(query + " pain treatment site:webmd.com OR site:mayoclinic.org")}`;
+        addMessage(`Oops beta 🌐, I couldn’t find this in my book... but I looked it up for you here:\n🔍 ${googleUrl}`, 'bot');
+      } catch (err) {
+        addMessage("Sorry beta 🌐, Mom couldn’t search the internet right now. Try again in a few minutes.", 'bot');
       }
-
-      addMessage(`For "${query}", here’s what Mom suggests 🌸:\n💊 *Medicine*: ${tablet}\n🏡 *Home Remedy*: ${remedy}\n\nStay strong, beta. If it continues, talk to a doctor too 💕`, 'bot');
     }
   </script>
 </body>
