@@ -1,65 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MomCure Chat</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MomCure - Talk to Your AI Mom</title>
   <style>
     body {
       margin: 0;
       padding: 0;
+      background: linear-gradient(135deg, #ffeaea, #ffd6d6);
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #ffe4e1, #fff0f5);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-
-    .chat-container {
-      width: 100%;
-      max-width: 400px;
-      height: 90vh;
+    .chatbox {
       background: #fff;
-      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      width: 95%;
+      max-width: 420px;
       border-radius: 20px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chat-header {
-      background: #f8bbd0;
-      padding: 15px;
+      box-shadow: 0 15px 40px rgba(255, 0, 64, 0.1);
+      padding: 30px;
       text-align: center;
-      font-size: 1.2rem;
-      color: #880e4f;
-      font-weight: bold;
     }
-
-    iframe {
-      flex-grow: 1;
+    .avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      margin-bottom: 20px;
+      object-fit: cover;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #d6336c;
+      margin-bottom: 10px;
+    }
+    p {
+      color: #333;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 25px;
+      padding: 12px 30px;
+      background: #ff85a2;
+      color: white;
       border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(255, 133, 162, 0.3);
+      transition: all 0.3s ease;
     }
-
-    .chat-footer {
-      padding: 10px;
-      text-align: center;
-      font-size: 0.8rem;
-      color: #ad1457;
-      background: #fce4ec;
+    button:hover {
+      background: #ff6f91;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div class="chat-header">
-      💬 Talk to MomCure
-    </div>
-    <iframe src="https://t.me/MomCureBot" allow="camera; microphone"></iframe>
-    <div class="chat-footer">
-      Mom is listening... lovingly. ❤️
-    </div>
+  <div class="chatbox">
+    <img src="https://cdn-icons-png.flaticon.com/512/4333/4333609.png" class="avatar" alt="Mom Avatar" />
+    <h2>Talk to MomCure</h2>
+    <p>Welcome to your loving AI mom. Ready to comfort, guide, and heal. Click below to begin chatting ❤️</p>
+    <button onclick="window.location.href='https://t.me/MomCureBot'">Start Chat</button>
+    <footer>Mom is waiting for you with love... 💬</footer>
   </div>
 </body>
 </html>
